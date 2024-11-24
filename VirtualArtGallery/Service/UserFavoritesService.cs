@@ -1,5 +1,6 @@
-﻿using VirtualArtGallery.Repository;
+using VirtualArtGallery.Repository;
 using System;
+using VirtualArtGallery.Model;
 
 namespace VirtualArtGallery.Service
 {
@@ -22,9 +23,10 @@ namespace VirtualArtGallery.Service
             return _userFavoritesRepository.RemoveFavoriteArtwork(userID, artworkID);
         }
 
-        public void GetUserFavoriteArtworks(int userID)
+        public List<Artwork> GetUserFavoriteArtworks(int userID)
         {
-            _userFavoritesRepository.GetUserFavoriteArtworks(userID);
+            return _userFavoritesRepository.GetUserFavoriteArtworks(userID);
         }
+
     }
 }
