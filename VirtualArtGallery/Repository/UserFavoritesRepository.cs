@@ -1,8 +1,9 @@
-﻿using VirtualArtGallery.Utility;
+using VirtualArtGallery.Utility;
 using System;
 using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.Data.Common;
+using VirtualArtGallery.Model;
 
 namespace VirtualArtGallery.Repository
 {
@@ -61,31 +62,39 @@ namespace VirtualArtGallery.Repository
             }
         }
 
-        public List<int> GetUserFavoriteArtworks(int userID)
+        public List<Artwork> GetUserFavoriteArtworks(int userID)
         {
-            List<int> artworkIDs = new List<int>();
-            using (SqlConnection conn = new SqlConnection(connectionString))
+            List<Artwork> favoriteArtworks = new List<Artwork>();
+
+            using (SqlConnection conn = new SqlConnection(DBConnection.GetConnectionString()))
             {
-                try
+                string query = @"SELECT a.ArtworkID, a.Title, a.Description, a.Medium, a.ImageURL, a.CreationDate, a.ArtistID
+                         FROM User_Favorite_Artwork ufa
+                         INNER JOIN Artwork a ON ufa.ArtworkID = a.ArtworkID
+                         WHERE ufa.UserID = @UserID";
+
+                SqlCommand cmd = new SqlCommand(query, conn);
+                cmd.Parameters.AddWithValue("@UserID", userID);
+
+                conn.Open();
+                SqlDataReader reader = cmd.ExecuteReader();
+
+                while (reader.Read())
                 {
-                    string query = "SELECT ArtworkID FROM User_Favorite_Artwork WHERE UserID = @UserID";
-                    SqlCommand cmd = new SqlCommand(query, conn);
-
-                    cmd.Parameters.AddWithValue("@UserID", userID);
-
-                    conn.Open();
-                    SqlDataReader reader = cmd.ExecuteReader();
-                    while (reader.Read())
+                    favoriteArtworks.Add(new Artwork
                     {
-                        artworkIDs.Add((int)reader["ArtworkID"]);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"Error fetching user's favorite artworks: {ex.Message}");
+                        ArtworkID = (int)reader["ArtworkID"],
+                        Title = (string)reader["Title"],
+                        Description = (string)reader["Description"],
+                        Medium = (string)reader["Medium"],
+                        ImageURL = (string)reader["ImageURL"],
+                        CreationDate = (DateTime)reader["CreationDate"],
+                        ArtistID = (int)reader["ArtistID"]
+                    });
                 }
             }
-            return artworkIDs;
+
+            return favoriteArtworks;
         }
     }
 }
